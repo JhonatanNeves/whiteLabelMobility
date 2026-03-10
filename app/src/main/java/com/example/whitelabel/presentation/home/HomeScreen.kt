@@ -2,6 +2,7 @@ package com.example.whitelabel.presentation.home
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import android.Manifest
+import android.R.attr.bottom
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.widget.Toast
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,178 +30,176 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.ui.draw.clip
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     state: HomeState,
     onEvent: (HomeEvent) -> Unit,
     onNavigateToSearch: () -> Unit
 ) {
-    val context = LocalContext.current
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
-        val coarseLocationGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
-
-        if (fineLocationGranted || coarseLocationGranted) {
-            onEvent(HomeEvent.OnLocationPermissionGranted)
-        } else {
-            Toast.makeText(context, "Precisamos da localização para o app funcionar", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        permissionLauncher.launch(
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberStandardBottomSheetState(
+            initialValue = SheetValue.PartiallyExpanded
         )
-        onEvent(HomeEvent.OnLoadInitialData)
-    }
+    )
 
-    LaunchedEffect(Unit) {
-
-    }
-
-    LaunchedEffect(Unit) {
-        onEvent(HomeEvent.OnLoadInitialData)
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-
-        val cameraPositionState = rememberCameraPositionState {
-            position = CameraPosition.fromLatLngZoom(
-                state.userLocation ?: LatLng(0.0, 0.0),
-                15f
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = 200.dp,
+        sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        sheetContainerColor = Color.White,
+        sheetShadowElevation = 10.dp,
+        sheetDragHandle = {
+            // O "puxador" centralizado como na imagem
+            BottomSheetDefaults.DragHandle(
+                width = 40.dp,
+                height = 4.dp,
+                color = Color.LightGray,
             )
-        }
-
-        LaunchedEffect(state.userLocation) {
-            state.userLocation?.let { loc ->
-                cameraPositionState.animate(
-                    update = CameraUpdateFactory.newLatLngZoom(loc, 15f),
-                    durationMs = 1500
-                )
-            }
-        }
-
-        val mapProperties = MapProperties(
-            isMyLocationEnabled = state.userLocation != null
-        )
-
-        GoogleMap(
-            modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState,
-            properties = mapProperties,
-            uiSettings = MapUiSettings(zoomControlsEnabled = false)
-        ) {
-            state.nearbyDrivers.forEach { driverLoc ->
-                Marker(
-                    state = MarkerState(position = driverLoc),
-                    title = "Motorista Próximo"
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(
-                    color = Color.White,
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                )
-                .padding(14.dp)
-        ) {
-            Text(
-                text = "Boa tarde, ${state.userName}",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
+        },
+        sheetContent = {
+            // --- CONTEÚDO DO MENU (O que sobe e desce) ---
+            Column(
                 modifier = Modifier
-                    .padding(bottom = 16.dp)
-                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp)
+            ) {
+                Text(
+                    text = "Boa tarde, ${state.userName}",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    ),
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // BARRA DE BUSCA "PARA ONDE?"
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(54.dp)
+                            .clip(RoundedCornerShape(27.dp))
+                            .background(Color(0xFFF3F3F3)) // Cinza bem claro
+                            .clickable { onNavigateToSearch() }
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Search, contentDescription = null, tint = Color.Black)
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text("Para onde?", color = Color.DarkGray)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    // BOTÃO AGENDAR (CILINDRO VAZADO + CALENDÁRIO + RELÓGIO)
+                    Box(
+                        modifier = Modifier
+                            .size(54.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .border(1.dp, Color.LightGray.copy(alpha = 0.5f), CircleShape)
+                            .clickable { onEvent(HomeEvent.OnScheduleClick) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(24.dp))
+                        // Relógio atrelado no canto
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .offset(x = (-4).dp, y = (-4).dp)
+                                .size(16.dp)
+                                .background(Color.White, CircleShape)
+                                .padding(1.dp)
+                        ) {
+                            Icon(Icons.Default.Schedule, contentDescription = null, tint = Color.Black)
+                        }
+                    }
+                }
+
+                // Espaço extra para quando o usuário puxar tudo para cima
+                Spacer(modifier = Modifier.height(20.dp))
+                HorizontalDivider(color = Color(0xFFF3F3F3))
+                // Aqui você pode colocar sugestões de endereços favoritos no futuro
+            }
+        }
+    ) {
+        // --- CONTEÚDO DO FUNDO (MAPA E BOTÕES FLUTUANTES) ---
+        Box(modifier = Modifier.fillMaxSize()) {
+
+            // MAPA (Sempre no fundo)
+            val cameraPositionState = rememberCameraPositionState {
+                position = CameraPosition.fromLatLngZoom(state.userLocation ?: LatLng(0.0, 0.0), 15f)
+            }
+            GoogleMap(
+                modifier = Modifier.fillMaxSize(),
+                cameraPositionState = cameraPositionState,
+                properties = MapProperties(isMyLocationEnabled = state.userLocation != null),
+                uiSettings = MapUiSettings(zoomControlsEnabled = false)
             )
 
-            Spacer(modifier = Modifier.height(3.dp))
-
+            // UI SUPERIOR (BOTÕES FLUTUANTES)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    ,
+                    .padding(horizontal = 16.dp, vertical = 60.dp) // Ajuste para não bater no entalhe (notch)
+                    .align(Alignment.TopCenter),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 1. Barra de Busca "Para onde?"
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(60.dp)
-                        .clip(RoundedCornerShape(27.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .clickable { onNavigateToSearch() }
-                        .padding(horizontal = 16.dp),
-                    contentAlignment = Alignment.CenterStart
+
+                Surface(
+                    shape = RoundedCornerShape(26.dp),
+                    color = Color(0xFFF3C111),
+                    shadowElevation = 6.dp
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null,
-                            tint = Color.Black
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Para onde?",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.Gray
-                        )
-                    }
+                    Text(
+                        text = "Moto SJ",
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+                        fontWeight = FontWeight.W500,
+                        color = Color.Black
+                    )
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Box(
-                    modifier = Modifier
-                        .size(54.dp) // Mesma altura da barra de busca
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface)
-                        // Borda que simula o cilindro vazado (vista de cima)
-                        .border(2.dp, Color.LightGray.copy(alpha = 0.5f), CircleShape)
-                        .clickable { onEvent(HomeEvent.OnScheduleClick) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Ícone Central: Calendário
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = "Agendar",
-                        modifier = Modifier.size(26.dp),
-                        tint = Color.Black
-                    )
-
-                    // Ícone de Relógio (Atividade Recente) no canto inferior direito
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .offset(x = (-2).dp, y = (-2).dp) // Ajuste fino de posição
-                            .size(18.dp)
-                            .background(Color.White, CircleShape) // Fundo para não misturar com o calendário
-                            .padding(1.dp)
+                // Botão Notificação com Badge (Ponto Vermelho)
+                Box {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.White,
+                        shadowElevation = 6.dp,
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Place,
-                            contentDescription = "Recentes",
-                            tint = Color.Black,
-                            modifier = Modifier.fillMaxSize()
+                            Icons.Default.Notifications,
+                            contentDescription = null,
+                            modifier = Modifier.padding(12.dp)
                         )
                     }
+                    // Ponto Vermelho de Alerta
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .background(Color.Red, CircleShape)
+                            .align(Alignment.TopEnd)
+                            .border(2.dp, Color.White, CircleShape)
+                    )
                 }
             }
         }
-
     }
 }
 
