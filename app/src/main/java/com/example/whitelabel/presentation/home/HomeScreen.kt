@@ -6,8 +6,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -21,18 +23,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.whitelabel.core.theme.WhiteLabelTheme
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.ui.draw.clip
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = hiltViewModel(),
+    state: HomeState,
+    onEvent: (HomeEvent) -> Unit,
     onNavigateToSearch: () -> Unit
 ) {
-    val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -42,7 +46,7 @@ fun HomeScreen(
         val coarseLocationGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
 
         if (fineLocationGranted || coarseLocationGranted) {
-            viewModel.onEvent(HomeEvent.OnLocationPermissionGranted)
+            onEvent(HomeEvent.OnLocationPermissionGranted)
         } else {
             Toast.makeText(context, "Precisamos da localização para o app funcionar", Toast.LENGTH_LONG).show()
         }
@@ -55,20 +59,15 @@ fun HomeScreen(
                 Manifest.permission.ACCESS_COARSE_LOCATION
             )
         )
-        viewModel.onEvent(HomeEvent.OnLoadInitialData)
+        onEvent(HomeEvent.OnLoadInitialData)
     }
 
     LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
-            when (effect) {
-                is HomeEffect.NavigateToSearch -> onNavigateToSearch()
-                is HomeEffect.ShowToast -> Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-            }
-        }
+
     }
 
     LaunchedEffect(Unit) {
-        viewModel.onEvent(HomeEvent.OnLoadInitialData)
+        onEvent(HomeEvent.OnLoadInitialData)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -115,56 +114,112 @@ fun HomeScreen(
                     color = Color.White,
                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                 )
-                .padding(24.dp)
+                .padding(14.dp)
         ) {
             Text(
                 text = "Boa tarde, ${state.userName}",
-                fontSize = 20.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .align(Alignment.CenterHorizontally)
             )
 
-            Surface(
-                color = Color(0xFFF3F4F6), // Cinza clarinho (Estilo Uber)
-                shape = RoundedCornerShape(12.dp),
+            Spacer(modifier = Modifier.height(3.dp))
+
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
-                        viewModel.onEvent(HomeEvent.OnSearchDestinationClicked)
-                    }
+                    ,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                // 1. Barra de Busca "Para onde?"
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(60.dp)
+                        .clip(RoundedCornerShape(27.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .clickable { onNavigateToSearch() }
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.CenterStart
                 ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Para onde?",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.Gray
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(54.dp) // Mesma altura da barra de busca
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surface)
+                        // Borda que simula o cilindro vazado (vista de cima)
+                        .border(2.dp, Color.LightGray.copy(alpha = 0.5f), CircleShape)
+                        .clickable { onEvent(HomeEvent.OnScheduleClick) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Ícone Central: Calendário
                     Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Ícone de Lupa",
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Agendar",
+                        modifier = Modifier.size(26.dp),
                         tint = Color.Black
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "Para onde?",
-                        fontSize = 18.sp,
-                        color = Color.Black,
-                        fontWeight = FontWeight.SemiBold
-                    )
+
+                    // Ícone de Relógio (Atividade Recente) no canto inferior direito
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .offset(x = (-2).dp, y = (-2).dp) // Ajuste fino de posição
+                            .size(18.dp)
+                            .background(Color.White, CircleShape) // Fundo para não misturar com o calendário
+                            .padding(1.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Place,
+                            contentDescription = "Recentes",
+                            tint = Color.Black,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
+
     }
 }
 
 @Preview
 @Composable
 private fun HomeScreenPreview() {
-    WhiteLabelTheme{
+    WhiteLabelTheme {
         HomeScreen(
-            onNavigateToSearch = {}
+            state = HomeState(
+                userName = "Usuário Teste",
+                userLocation = LatLng(-23.5505, -46.6333), // Example location: São Paulo
+                nearbyDrivers = listOf(
+                    LatLng(-23.5510, -46.6340),
+                    LatLng(-23.5490, -46.6320)
+                )
+            ),
+            onEvent = {}, // Dummy lambda for preview
+            onNavigateToSearch = {} // Dummy lambda for preview
         )
-
     }
 }
+
+

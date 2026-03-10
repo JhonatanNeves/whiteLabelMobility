@@ -15,6 +15,8 @@ sealed class HomeEvent {
     data object OnSearchDestinationClicked : HomeEvent()
 
     data object OnLocationPermissionGranted : HomeEvent()
+
+    data object OnScheduleClick : HomeEvent()
 }
 
 sealed class HomeEffect {

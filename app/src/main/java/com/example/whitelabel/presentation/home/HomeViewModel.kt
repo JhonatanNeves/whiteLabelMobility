@@ -42,6 +42,8 @@ class HomeViewModel @Inject constructor (
                     _effect.send(HomeEffect.NavigateToSearch)
                 }
             }
+
+            else -> {}
         }
     }
 
