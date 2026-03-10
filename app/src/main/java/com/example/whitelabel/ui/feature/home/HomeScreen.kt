@@ -3,31 +3,15 @@ package com.example.whitelabel.ui.feature.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -54,7 +38,6 @@ fun HomeScreen(
 ) {
     val cameraPositionState = rememberCameraPositionState()
 
-    // 🔥 Aqui está a solução: A UI observa o state.userLocation que vem do Repository -> ViewModel
     LaunchedEffect(state.userLocation) {
         state.userLocation?.let { location ->
             cameraPositionState.animate(
@@ -64,34 +47,34 @@ fun HomeScreen(
         }
     }
 
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberStandardBottomSheetState(
+            initialValue = SheetValue.PartiallyExpanded
+        )
+    )
+
     BottomSheetScaffold(
-        scaffoldState = rememberBottomSheetScaffoldState(),
+        scaffoldState = scaffoldState,
         sheetPeekHeight = 200.dp,
         sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         sheetContainerColor = Color.White,
         sheetShadowElevation = 10.dp,
         sheetDragHandle = {
-            // O "puxador" centralizado como na imagem
             BottomSheetDefaults.DragHandle(
                 width = 40.dp,
-                height = 4.dp,
+                height = 3.dp,
                 color = Color.LightGray,
-            )
+                )
         },
         sheetContent = {
-            // --- CONTEÚDO DO MENU (O que sobe e desce) ---
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .padding(bottom = 24.dp)
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
             ) {
                 Text(
                     text = "Boa tarde, ${state.userName}",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    ),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
 
@@ -101,13 +84,12 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // BARRA DE BUSCA "PARA ONDE?"
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .height(54.dp)
                             .clip(RoundedCornerShape(27.dp))
-                            .background(Color(0xFFF3F3F3)) // Cinza bem claro
+                            .background(Color(0xFFF3F3F3))
                             .clickable { onNavigateToSearch() }
                             .padding(horizontal = 16.dp),
                         contentAlignment = Alignment.CenterStart
@@ -121,7 +103,7 @@ fun HomeScreen(
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // BOTÃO AGENDAR (CILINDRO VAZADO + CALENDÁRIO + RELÓGIO)
+                    // BOTÃO AGENDAR (Cilindro vazado com relógio)
                     Box(
                         modifier = Modifier
                             .size(54.dp)
@@ -132,7 +114,6 @@ fun HomeScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(24.dp))
-                        // Relógio atrelado no canto
                         Box(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
@@ -146,21 +127,69 @@ fun HomeScreen(
                     }
                 }
 
-                // Espaço extra para quando o usuário puxar tudo para cima
                 Spacer(modifier = Modifier.height(20.dp))
                 HorizontalDivider(color = Color(0xFFF3F3F3))
-                // Aqui você pode colocar sugestões de endereços favoritos no futuro
             }
         }
+    ) { paddingValues ->
 
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
                 properties = MapProperties(isMyLocationEnabled = state.userLocation != null),
-                uiSettings = MapUiSettings(zoomControlsEnabled = false)
+                uiSettings = MapUiSettings(zoomControlsEnabled = false, myLocationButtonEnabled = false)
             )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 60.dp)
+                    .align(Alignment.TopCenter),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(26.dp),
+                    color = Color(0xFFF3C111),
+                    shadowElevation = 6.dp
+                ) {
+                    Text(
+                        text = "Moto SJ",
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+                        fontWeight = FontWeight.W500,
+                        color = Color.Black
+                    )
+                }
+
+                Box {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.White,
+                        shadowElevation = 6.dp,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Notifications,
+                            contentDescription = null,
+                            modifier = Modifier.padding(12.dp),
+                            tint = Color.Black
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .background(Color.Red, CircleShape)
+                            .align(Alignment.TopEnd)
+                            .border(2.dp, Color.White, CircleShape)
+                    )
+                }
+            }
         }
     }
 }
@@ -172,7 +201,7 @@ private fun HomeScreenPreview() {
         HomeScreen(
             state = HomeState(
                 userName = "Usuário Teste",
-                userLocation = LatLng(-23.5505, -46.6333), // Example location: São Paulo
+                userLocation = LatLng(-23.5505, -46.6333),
                 nearbyDrivers = listOf(
                     LatLng(-23.5510, -46.6340),
                     LatLng(-23.5490, -46.6320)
