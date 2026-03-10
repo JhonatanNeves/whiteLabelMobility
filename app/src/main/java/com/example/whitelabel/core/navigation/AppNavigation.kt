@@ -10,12 +10,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
-import com.example.whitelabel.presentation.home.HomeScreen
-import com.example.whitelabel.presentation.home.HomeViewModel
 
 import com.example.whitelabel.presentation.search.SearchScreen
 import com.example.whitelabel.presentation.search.SearchViewModel
 import com.example.whitelabel.presentation.search.SearchEffect
+import com.example.whitelabel.ui.feature.home.HomeScreen
+import com.example.whitelabel.ui.feature.home.HomeViewModel
 
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {

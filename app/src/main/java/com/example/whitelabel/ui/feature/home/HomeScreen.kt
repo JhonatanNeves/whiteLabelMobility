@@ -1,39 +1,49 @@
-package com.example.whitelabel.presentation.home
+package com.example.whitelabel.ui.feature.home
 
-import com.google.android.gms.maps.CameraUpdateFactory
-import android.Manifest
-import android.R.attr.bottom
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.whitelabel.core.theme.WhiteLabelTheme
-import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.*
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.ui.draw.clip
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.rememberCameraPositionState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,15 +52,20 @@ fun HomeScreen(
     onEvent: (HomeEvent) -> Unit,
     onNavigateToSearch: () -> Unit
 ) {
+    val cameraPositionState = rememberCameraPositionState()
 
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberStandardBottomSheetState(
-            initialValue = SheetValue.PartiallyExpanded
-        )
-    )
+    // 🔥 Aqui está a solução: A UI observa o state.userLocation que vem do Repository -> ViewModel
+    LaunchedEffect(state.userLocation) {
+        state.userLocation?.let { location ->
+            cameraPositionState.animate(
+                update = CameraUpdateFactory.newLatLngZoom(location, 15f),
+                durationMs = 1500
+            )
+        }
+    }
 
     BottomSheetScaffold(
-        scaffoldState = scaffoldState,
+        scaffoldState = rememberBottomSheetScaffoldState(),
         sheetPeekHeight = 200.dp,
         sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         sheetContainerColor = Color.White,
@@ -137,68 +152,15 @@ fun HomeScreen(
                 // Aqui você pode colocar sugestões de endereços favoritos no futuro
             }
         }
-    ) {
-        // --- CONTEÚDO DO FUNDO (MAPA E BOTÕES FLUTUANTES) ---
-        Box(modifier = Modifier.fillMaxSize()) {
 
-            // MAPA (Sempre no fundo)
-            val cameraPositionState = rememberCameraPositionState {
-                position = CameraPosition.fromLatLngZoom(state.userLocation ?: LatLng(0.0, 0.0), 15f)
-            }
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
                 properties = MapProperties(isMyLocationEnabled = state.userLocation != null),
                 uiSettings = MapUiSettings(zoomControlsEnabled = false)
             )
-
-            // UI SUPERIOR (BOTÕES FLUTUANTES)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 60.dp) // Ajuste para não bater no entalhe (notch)
-                    .align(Alignment.TopCenter),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                Surface(
-                    shape = RoundedCornerShape(26.dp),
-                    color = Color(0xFFF3C111),
-                    shadowElevation = 6.dp
-                ) {
-                    Text(
-                        text = "Moto SJ",
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-                        fontWeight = FontWeight.W500,
-                        color = Color.Black
-                    )
-                }
-
-                // Botão Notificação com Badge (Ponto Vermelho)
-                Box {
-                    Surface(
-                        shape = CircleShape,
-                        color = Color.White,
-                        shadowElevation = 6.dp,
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Notifications,
-                            contentDescription = null,
-                            modifier = Modifier.padding(12.dp)
-                        )
-                    }
-                    // Ponto Vermelho de Alerta
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .background(Color.Red, CircleShape)
-                            .align(Alignment.TopEnd)
-                            .border(2.dp, Color.White, CircleShape)
-                    )
-                }
-            }
         }
     }
 }
@@ -221,5 +183,3 @@ private fun HomeScreenPreview() {
         )
     }
 }
-
-

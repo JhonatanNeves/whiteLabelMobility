@@ -1,4 +1,4 @@
-package com.example.whitelabel.presentation.main
+package com.example.whitelabel.ui.feature.main
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

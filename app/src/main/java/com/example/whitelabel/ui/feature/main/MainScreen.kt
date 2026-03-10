@@ -1,4 +1,4 @@
-package com.example.whitelabel.presentation.main
+package com.example.whitelabel.ui.feature.main
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -22,8 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.whitelabel.presentation.account.AccountScreen
 import com.example.whitelabel.presentation.activity.ActivityScreen
-import com.example.whitelabel.presentation.home.HomeScreen
-import com.example.whitelabel.presentation.home.HomeViewModel
+import com.example.whitelabel.ui.feature.home.HomeScreen
+import com.example.whitelabel.ui.feature.home.HomeViewModel
 
 @Composable
 fun MainScreen(
