@@ -154,7 +154,7 @@ fun HomeScreen(
                 cameraPositionState = cameraPositionState,
                 properties = MapProperties(isMyLocationEnabled = state.userLocation != null),
                 uiSettings = MapUiSettings(zoomControlsEnabled = false, myLocationButtonEnabled = false),
-                contentPadding = PaddingValues(bottom = 220.dp)
+                contentPadding = PaddingValues(bottom = 120.dp)
             )
 
             Row(
