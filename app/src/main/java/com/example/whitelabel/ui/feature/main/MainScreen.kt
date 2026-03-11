@@ -39,7 +39,7 @@ fun MainScreen(
             NavigationBar(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(98.dp),
+                    .height(115.dp),
                 containerColor = Color.White,
                 tonalElevation = 0.dp,
                 windowInsets = WindowInsets.navigationBars
@@ -58,15 +58,15 @@ fun MainScreen(
                 NavigationBarItem(
                     selected = state.selectedTabIndex == 1,
                     onClick = { onEvent(MainEvent.OnTabSelected(1)) },
-                    icon = { Icon(Icons.Default.History, contentDescription = "Atividade") },
-                    label = { Text("Atividade") }
+                    icon = { Icon(Icons.Default.History, contentDescription = "Activity") },
+                    label = { Text("Activity") }
                 )
 
                 NavigationBarItem(
                     selected = state.selectedTabIndex == 2,
                     onClick = { onEvent(MainEvent.OnTabSelected(2)) },
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Conta") },
-                    label = { Text("Conta") }
+                    icon = { Icon(Icons.Default.Person, contentDescription = "Account") },
+                    label = { Text("Account") }
                 )
             }
         }
