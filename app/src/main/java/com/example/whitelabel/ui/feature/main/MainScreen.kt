@@ -1,6 +1,11 @@
 package com.example.whitelabel.ui.feature.main
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
@@ -9,67 +14,91 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.whitelabel.presentation.account.AccountScreen
-import com.example.whitelabel.presentation.activity.ActivityScreen
 import com.example.whitelabel.ui.feature.home.HomeScreen
 import com.example.whitelabel.ui.feature.home.HomeViewModel
 
 @Composable
 fun MainScreen(
-    onNavigateToSearch: () -> Unit
+    state: MainState,
+    onEvent: (MainEvent) -> Unit,
+    onNavigateToSearch: () -> Unit,
 ) {
-
-    var selectedTab by remember { mutableIntStateOf(0) }
-
     Scaffold(
         bottomBar = {
-            NavigationBar(containerColor = Color.White) {
+            NavigationBar(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(98.dp),
+                containerColor = Color.White,
+                tonalElevation = 0.dp,
+                windowInsets = WindowInsets.navigationBars
+            ) {
+
                 NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
+                    selected = state.selectedTabIndex == 0,
+                    onClick = { onEvent(MainEvent.OnTabSelected(0)) },
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                     label = { Text("Home") },
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) }
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color(0xFFE0AB00)
+                    )
                 )
+
                 NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    label = { Text("Atividade") },
-                    icon = { Icon(Icons.Default.History, contentDescription = null) }
+                    selected = state.selectedTabIndex == 1,
+                    onClick = { onEvent(MainEvent.OnTabSelected(1)) },
+                    icon = { Icon(Icons.Default.History, contentDescription = "Atividade") },
+                    label = { Text("Atividade") }
                 )
+
                 NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
-                    label = { Text("Conta") },
-                    icon = { Icon(Icons.Default.Person, contentDescription = null) }
+                    selected = state.selectedTabIndex == 2,
+                    onClick = { onEvent(MainEvent.OnTabSelected(2)) },
+                    icon = { Icon(Icons.Default.Person, contentDescription = "Conta") },
+                    label = { Text("Conta") }
                 )
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
-            when (selectedTab) {
+
+        Box(modifier = Modifier
+            .padding(bottom = paddingValues.calculateBottomPadding())
+            .fillMaxSize()) {
+            when (state.selectedTabIndex) {
                 0 -> {
+
                     val homeViewModel: HomeViewModel = hiltViewModel()
-                    val state by homeViewModel.state.collectAsState()
+                    val homeState by homeViewModel.state.collectAsState()
 
                     HomeScreen(
-                        state = state,
+                        state = homeState,
                         onEvent = homeViewModel::onEvent,
                         onNavigateToSearch = onNavigateToSearch
                     )
                 }
-                1 -> ActivityScreen()
-                2 -> AccountScreen()
+                1 -> {
+
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("🚧 Tela de Atividades em construção 🚧")
+                    }
+                }
+                2 -> {
+
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("🚧 Tela de Conta em construção 🚧")
+                    }
+                }
             }
         }
     }

@@ -16,6 +16,12 @@ class HomeViewModel @Inject constructor(
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
+    init {
+        _state.update { it.copy(userName = "Jhonatan") }
+
+        fetchLocation()
+    }
+
     fun onEvent(event: HomeEvent) {
         when (event) {
             is HomeEvent.OnLoadInitialData -> fetchLocation()

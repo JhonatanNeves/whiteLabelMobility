@@ -1,6 +1,5 @@
 package com.example.whitelabel.di
 
-
 import android.app.Application
 import com.example.whitelabel.domain.location.DefaultLocationTracker
 import com.example.whitelabel.domain.location.LocationTracker

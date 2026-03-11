@@ -1,5 +1,6 @@
 package com.example.whitelabel.ui.feature.home
 
+import android.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -55,33 +56,45 @@ fun HomeScreen(
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
-        sheetPeekHeight = 200.dp,
-        sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        sheetPeekHeight = 120.dp,
+        sheetShape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
         sheetContainerColor = Color.White,
-        sheetShadowElevation = 10.dp,
         sheetDragHandle = {
-            BottomSheetDefaults.DragHandle(
-                width = 40.dp,
-                height = 3.dp,
-                color = Color.LightGray,
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp, bottom = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+
+                Box(
+                    modifier = Modifier
+                        .width(32.dp)
+                        .height(4.dp)
+                        .background(Color.LightGray, CircleShape)
                 )
+            }
         },
         sheetContent = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 10.dp)
             ) {
                 Text(
-                    text = "Boa tarde, ${state.userName}",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    text = "Good evening , ${state.userName}" ,
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W500),
                     modifier = Modifier.align(Alignment.CenterHorizontally)
+                    ,
+
+
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -97,13 +110,12 @@ fun HomeScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Search, contentDescription = null, tint = Color.Black)
                             Spacer(modifier = Modifier.width(10.dp))
-                            Text("Para onde?", color = Color.DarkGray)
+                            Text("Choose destination", color = Color.DarkGray)
                         }
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // BOTÃO AGENDAR (Cilindro vazado com relógio)
                     Box(
                         modifier = Modifier
                             .size(54.dp)
@@ -127,29 +139,29 @@ fun HomeScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(9.dp))
                 HorizontalDivider(color = Color(0xFFF3F3F3))
             }
         }
-    ) { paddingValues ->
+    ) {
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
         ) {
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
                 properties = MapProperties(isMyLocationEnabled = state.userLocation != null),
-                uiSettings = MapUiSettings(zoomControlsEnabled = false, myLocationButtonEnabled = false)
+                uiSettings = MapUiSettings(zoomControlsEnabled = false, myLocationButtonEnabled = false),
+                contentPadding = PaddingValues(bottom = 220.dp)
             )
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 60.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
                     .align(Alignment.TopCenter),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically

@@ -16,6 +16,8 @@ import com.example.whitelabel.presentation.search.SearchViewModel
 import com.example.whitelabel.presentation.search.SearchEffect
 import com.example.whitelabel.ui.feature.home.HomeScreen
 import com.example.whitelabel.ui.feature.home.HomeViewModel
+import com.example.whitelabel.ui.feature.main.MainScreen
+import com.example.whitelabel.ui.feature.main.MainViewModel
 
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
@@ -27,16 +29,14 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         modifier = modifier
     ) {
 
-        // --- TELA HOME (Herda de Route) ---
         composable<Route.HomeRoute> {
-            val homeViewModel: HomeViewModel = hiltViewModel()
-            val homeState by homeViewModel.state.collectAsState()
+            val mainViewModel: MainViewModel = hiltViewModel()
+            val mainState by mainViewModel.state.collectAsState()
 
-            HomeScreen(
-                state = homeState,
-                onEvent = { event -> homeViewModel.onEvent(event) },
+            MainScreen(
+                state = mainState,
+                onEvent = mainViewModel::onEvent,
                 onNavigateToSearch = {
-                    // Navegando para o objeto SearchRoute (que não herda de Route, mas está no mesmo arquivo)
                     navController.navigate(Route.SearchRoute)
                 }
             )
