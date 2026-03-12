@@ -45,9 +45,8 @@ fun SearchScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Cabeçalho de Inputs (Estilo Uber)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // A linha vertical decorativa
+
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.width(24.dp)
@@ -97,7 +96,7 @@ fun SearchScreen(
             }
         }
     ) { paddingValues ->
-        // Lista de Sugestões
+
         LazyColumn(
             modifier = Modifier
                 .padding(paddingValues)

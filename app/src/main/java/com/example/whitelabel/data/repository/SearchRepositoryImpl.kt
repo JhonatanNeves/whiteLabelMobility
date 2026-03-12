@@ -42,13 +42,11 @@ class SearchRepositoryImpl @Inject constructor(
 
     override suspend fun getPlaceCoordinates(placeId: String): Result<LocationCoordinate> {
         return try {
-            // 🔥 Dizemos explicitamente o tipo da lista
             val placeFields: List<Place.Field> = listOf(
                 Place.Field.LOCATION,
                 Place.Field.FORMATTED_ADDRESS
             )
 
-            // 🔥 Usamos o Builder, que é o padrão mais atual do SDK
             val request = FetchPlaceRequest.builder(placeId, placeFields).build()
 
             val response = placesClient.fetchPlace(request).await()

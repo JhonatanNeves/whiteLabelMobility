@@ -27,6 +27,17 @@ class HomeViewModel @Inject constructor(
             is HomeEvent.OnLoadInitialData -> fetchLocation()
             is HomeEvent.OnLocationPermissionGranted -> fetchLocation()
             is HomeEvent.OnScheduleClick -> { /* Lógica de agendamento */ }
+
+            is HomeEvent.OnDestinationSelected -> {
+                // 1. Atualizamos a tela (A barra de busca vai mudar de texto)
+                _state.update { it.copy(
+                    destinationAddress = event.address,
+                    destinationLat = event.latitude,
+                    destinationLng = event.longitude
+                ) }
+
+                // 2. Aqui você poderá disparar um HomeEffect.MoveCameraTo(lat, lng) no futuro!
+            }
         }
     }
 

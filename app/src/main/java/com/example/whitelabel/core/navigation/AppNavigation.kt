@@ -29,7 +29,6 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             val mainViewModel: MainViewModel = hiltViewModel()
             val mainState by mainViewModel.state.collectAsState()
 
-            // 🔥 A HOME ESCUTA SE ALGUÉM DEVOLVEU UM RESULTADO
             val savedStateHandle = backStackEntry.savedStateHandle
             val destLat = savedStateHandle.get<Double>("dest_lat")
             val destLng = savedStateHandle.get<Double>("dest_lng")
@@ -52,6 +51,15 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 onEvent = mainViewModel::onEvent,
                 onNavigateToSearch = {
                     navController.navigate(Route.SearchRoute)
+                },
+
+                destLat = destLat,
+                destLng = destLng,
+                destAddress = destAddress,
+                onDestinationConsumed = {
+                    savedStateHandle.remove<Double>("dest_lat")
+                    savedStateHandle.remove<Double>("dest_lng")
+                    savedStateHandle.remove<String>("dest_address")
                 }
             )
         }

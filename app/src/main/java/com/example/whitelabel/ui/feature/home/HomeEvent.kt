@@ -4,4 +4,10 @@ sealed interface HomeEvent {
     data object OnLoadInitialData : HomeEvent
     data object OnLocationPermissionGranted : HomeEvent
     data object OnScheduleClick : HomeEvent
+
+    data class OnDestinationSelected(
+        val latitude: Double,
+        val longitude: Double,
+        val address: String
+    ) : HomeEvent
 }

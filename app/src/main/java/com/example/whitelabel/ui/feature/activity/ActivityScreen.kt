@@ -13,6 +13,6 @@ import androidx.compose.ui.unit.dp
 fun ActivityScreen() {
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Suas atividades recentes", style = MaterialTheme.typography.headlineMedium)
-        // Aqui virá a lista de corridas passadas...
+
     }
 }

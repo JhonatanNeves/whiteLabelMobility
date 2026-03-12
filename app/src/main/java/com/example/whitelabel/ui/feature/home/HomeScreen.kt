@@ -1,6 +1,5 @@
 package com.example.whitelabel.ui.feature.home
 
-import android.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.whitelabel.core.theme.WhiteLabelTheme
@@ -28,7 +28,10 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import androidx.compose.runtime.remember
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +46,18 @@ fun HomeScreen(
         state.userLocation?.let { location ->
             cameraPositionState.animate(
                 update = CameraUpdateFactory.newLatLngZoom(location, 15f),
+                durationMs = 1500
+            )
+        }
+    }
+
+    LaunchedEffect(state.destinationLat, state.destinationLng) {
+        val lat = state.destinationLat
+        val lng = state.destinationLng
+        if (lat != null && lng != null) {
+            val destination = LatLng(lat, lng)
+            cameraPositionState.animate(
+                update = CameraUpdateFactory.newLatLngZoom(destination, 16f), // Zoom um pouco mais perto
                 durationMs = 1500
             )
         }
@@ -66,7 +81,6 @@ fun HomeScreen(
                     .padding(top = 10.dp, bottom = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
-
                 Box(
                     modifier = Modifier
                         .width(32.dp)
@@ -81,20 +95,16 @@ fun HomeScreen(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "Good evening , ${state.userName}" ,
+                    text = "Good evening, ${state.userName}",
                     color = Color.Gray,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W500),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                    ,
-
-
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -110,7 +120,13 @@ fun HomeScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Search, contentDescription = null, tint = Color.Black)
                             Spacer(modifier = Modifier.width(10.dp))
-                            Text("Choose destination", color = Color.DarkGray)
+                            Text(
+                                text = state.destinationAddress ?: "Choose a Destination",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (state.destinationAddress != null) Color.Black else Color.Gray,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
                     }
 
@@ -155,7 +171,24 @@ fun HomeScreen(
                 properties = MapProperties(isMyLocationEnabled = state.userLocation != null),
                 uiSettings = MapUiSettings(zoomControlsEnabled = false, myLocationButtonEnabled = false),
                 contentPadding = PaddingValues(bottom = 120.dp)
-            )
+            ) {
+
+                val destLat = state.destinationLat
+                val destLng = state.destinationLng
+
+                if (destLat != null && destLng != null) {
+
+                    val markerState = remember(destLat, destLng) {
+                        MarkerState(position = LatLng(destLat, destLng))
+                    }
+
+                    Marker(
+                        state = markerState,
+                        title = state.destinationAddress,
+                        snippet = "Destino Selecionado"
+                    )
+                }
+            }
 
             Row(
                 modifier = Modifier
@@ -219,8 +252,8 @@ private fun HomeScreenPreview() {
                     LatLng(-23.5490, -46.6320)
                 )
             ),
-            onEvent = {}, // Dummy lambda for preview
-            onNavigateToSearch = {} // Dummy lambda for preview
+            onEvent = {},
+            onNavigateToSearch = {}
         )
     }
 }
