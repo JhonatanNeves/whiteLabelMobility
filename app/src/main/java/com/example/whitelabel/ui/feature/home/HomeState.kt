@@ -9,5 +9,6 @@ data class HomeState(
     val isLoading: Boolean = false,
     val destinationAddress: String? = null,
     val destinationLat: Double? = null,
-    val destinationLng: Double? = null
+    val destinationLng: Double? = null,
+    val routePolylines: List<LatLng> = emptyList()
 )

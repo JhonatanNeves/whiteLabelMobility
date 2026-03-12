@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
@@ -28,10 +29,13 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import androidx.compose.runtime.remember
+import com.google.maps.android.compose.MarkerComposable
+import com.google.maps.android.compose.Polyline
+import com.google.maps.android.compose.rememberMarkerState
+import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Icon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -170,23 +174,109 @@ fun HomeScreen(
                 cameraPositionState = cameraPositionState,
                 properties = MapProperties(isMyLocationEnabled = state.userLocation != null),
                 uiSettings = MapUiSettings(zoomControlsEnabled = false, myLocationButtonEnabled = false),
-                contentPadding = PaddingValues(bottom = 120.dp)
+                contentPadding = PaddingValues(bottom = 120.dp, top = 100.dp) // Dá espaço para os botões e bottom sheet
             ) {
 
+                // 1. DESENHA A LINHA DA ROTA (Cor Cinza como na foto)
+                if (state.routePolylines.isNotEmpty()) {
+                    Polyline(
+                        points = state.routePolylines,
+                        color = Color.DarkGray,
+                        width = 10f
+                    )
+                }
+
+                // 2. TAG DA ORIGEM (Sua localização)
+                val originLat = state.userLocation?.latitude
+                val originLng = state.userLocation?.longitude
+
+                if (originLat != null && originLng != null && state.destinationLat != null) {
+                    MarkerComposable(
+                        state = rememberMarkerState(position = LatLng(originLat, originLng)),
+                    ) {
+                        // O Desenho da caixinha branca da origem
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.White,
+                            shadowElevation = 4.dp
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Sua localização", // Você pode colocar a rua real aqui depois
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.DarkGray,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+                            }
+                        }
+                    }
+                }
+
+                // 3. TAG DO DESTINO (Com a caixinha preta de Tempo/Distância embaixo)
                 val destLat = state.destinationLat
                 val destLng = state.destinationLng
 
                 if (destLat != null && destLng != null) {
+                    MarkerComposable(
+                        state = rememberMarkerState(position = LatLng(destLat, destLng)),
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            // Caixinha Branca com a Rua
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color.White,
+                                shadowElevation = 4.dp
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = state.destinationAddress ?: "Destino",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color.Black,
+                                        modifier = Modifier.widthIn(max = 150.dp), // ✅ O jeito correto!
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+                                }
+                            }
 
-                    val markerState = remember(destLat, destLng) {
-                        MarkerState(position = LatLng(destLat, destLng))
+                            // Caixinha Escura com a Distância e Tempo (Como na foto)
+                            // Se a rota foi calculada, mostramos uma estimativa fake por enquanto
+                            if (state.routePolylines.isNotEmpty()) {
+                                Surface(
+                                    shape = RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp),
+                                    color = Color(0xFF2C323A), // Cor escura
+                                    modifier = Modifier.offset(y = (-4).dp) // Sobe um pouquinho para colar na de cima
+                                ) {
+                                    Text(
+                                        text = "6.4 KM • 14 MIN", // Faremos isso dinâmico no futuro!
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+
+                            // A "setinha" apontando pro ponto exato (Opcional, usando um triângulo ou círculo pequeno)
+                            Box(
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .background(Color(0xFFF3C111), CircleShape) // Círculo amarelo da foto
+                                    .border(2.dp, Color.White, CircleShape)
+                            )
+                        }
                     }
-
-                    Marker(
-                        state = markerState,
-                        title = state.destinationAddress,
-                        snippet = "Destino Selecionado"
-                    )
                 }
             }
 
@@ -205,7 +295,7 @@ fun HomeScreen(
                     shadowElevation = 6.dp
                 ) {
                     Text(
-                        text = "Moto SJ",
+                        text = "MoVee",
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
                         fontWeight = FontWeight.W500,
                         color = Color.Black
@@ -244,14 +334,8 @@ fun HomeScreen(
 private fun HomeScreenPreview() {
     WhiteLabelTheme {
         HomeScreen(
-            state = HomeState(
-                userName = "Usuário Teste",
-                userLocation = LatLng(-23.5505, -46.6333),
-                nearbyDrivers = listOf(
-                    LatLng(-23.5510, -46.6340),
-                    LatLng(-23.5490, -46.6320)
-                )
-            ),
+            state = HomeState()
+            ,
             onEvent = {},
             onNavigateToSearch = {}
         )
