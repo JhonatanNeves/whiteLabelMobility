@@ -1,4 +1,4 @@
-package com.example.whitelabel.presentation.account
+package com.example.whitelabel.ui.feature.account
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize

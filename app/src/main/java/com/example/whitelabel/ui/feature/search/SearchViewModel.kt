@@ -11,9 +11,12 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.example.whitelabel.domain.repository.SearchRepository
 
 @HiltViewModel
-class SearchViewModel @Inject constructor() : ViewModel() {
+class SearchViewModel @Inject constructor(
+    private val searchRepository: SearchRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(SearchState())
     val state: StateFlow<SearchState> = _state.asStateFlow()
@@ -25,25 +28,41 @@ class SearchViewModel @Inject constructor() : ViewModel() {
         when (event) {
             is SearchEvent.OnOriginChanged -> {
                 _state.update { it.copy(originQuery = event.query) }
+                searchPlaces(event.query)
             }
             is SearchEvent.OnDestinationChanged -> {
                 _state.update { it.copy(destinationQuery = event.query) }
-                updateSuggestions(event.query) // Simula busca
+                searchPlaces(event.query)
             }
             is SearchEvent.OnBackClick -> {
                 viewModelScope.launch { _effect.send(SearchEffect.NavigateBack) }
             }
             is SearchEvent.OnSuggestionSelected -> {
-                // Lógica de seleção
+                getCoordinates(event.suggestion.placeId)
+            }
+        }
+    }
+    private fun getCoordinates(placeId: String) {
+        viewModelScope.launch {
+            searchRepository.getPlaceCoordinates(placeId).onSuccess { coordinate ->
+                _effect.send(SearchEffect.NavigateBackWithResult(coordinate))
+            }.onFailure {
+                // snack bar error
             }
         }
     }
 
-    private fun updateSuggestions(query: String) {
-        if (query.length > 2) {
-            _state.update { it.copy(suggestions = listOf("Av. Paulista, 1000", "Rua Augusta, 500", "Aeroporto de Congonhas")) }
-        } else {
-            _state.update { it.copy(suggestions = emptyList()) }
+    private fun searchPlaces(query: String) {
+        viewModelScope.launch {
+            if (query.length > 2) {
+                searchRepository.getAutocomplete(query).onSuccess { results ->
+                    _state.update { it.copy(suggestions = results) }
+                }.onFailure {
+                    _state.update { it.copy(suggestions = emptyList()) }
+                }
+            } else {
+                _state.update { it.copy(suggestions = emptyList()) }
+            }
         }
     }
 }

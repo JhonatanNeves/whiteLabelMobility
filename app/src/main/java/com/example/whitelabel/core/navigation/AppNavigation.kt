@@ -49,6 +49,8 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                         is SearchEffect.NavigateBack -> {
                             navController.navigateUp()
                         }
+
+                        else -> {}
                     }
                 }
             }
