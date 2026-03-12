@@ -83,4 +83,5 @@ dependencies {
 
     implementation(libs.places)
     implementation(libs.kotlinx.coroutines.play.services.v1102)
+    implementation(libs.android.maps.utils)
 }
