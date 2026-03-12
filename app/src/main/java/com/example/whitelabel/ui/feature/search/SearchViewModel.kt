@@ -47,7 +47,6 @@ class SearchViewModel @Inject constructor(
             searchRepository.getPlaceCoordinates(placeId).onSuccess { coordinate ->
                 _effect.send(SearchEffect.NavigateBackWithResult(coordinate))
             }.onFailure {
-                // snack bar error
             }
         }
     }
