@@ -1,4 +1,4 @@
-package com.example.whitelabel.data.repository
+package com.example.whitelabel.domain.repository
 
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.Flow

@@ -29,13 +29,3 @@ object SearchModule {
     }
 }
 
-@Module
-@InstallIn(SingletonComponent::class)
-abstract class SearchRepositoryModule {
-
-    @Binds
-    @Singleton
-    abstract fun bindSearchRepository(
-        searchRepositoryImpl: SearchRepositoryImpl
-    ): SearchRepository
-}

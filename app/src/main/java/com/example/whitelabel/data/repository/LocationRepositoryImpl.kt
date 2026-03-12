@@ -2,6 +2,7 @@ package com.example.whitelabel.data.repository
 
 import android.annotation.SuppressLint
 import android.os.Looper
+import com.example.whitelabel.domain.repository.LocationRepository
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.channels.awaitClose
