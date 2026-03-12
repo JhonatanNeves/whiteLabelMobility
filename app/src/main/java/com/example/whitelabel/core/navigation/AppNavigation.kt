@@ -10,14 +10,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
-
-import com.example.whitelabel.presentation.search.SearchScreen
-import com.example.whitelabel.presentation.search.SearchViewModel
-import com.example.whitelabel.presentation.search.SearchEffect
-import com.example.whitelabel.ui.feature.home.HomeScreen
-import com.example.whitelabel.ui.feature.home.HomeViewModel
 import com.example.whitelabel.ui.feature.main.MainScreen
 import com.example.whitelabel.ui.feature.main.MainViewModel
+import com.example.whitelabel.ui.feature.search.SearchScreen
+import com.example.whitelabel.ui.feature.search.SearchViewModel
+import com.example.whitelabel.ui.feature.search.SearchEffect
 
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
@@ -25,7 +22,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 
     NavHost(
         navController = navController,
-        startDestination = Route.HomeRoute, // Chamando o objeto que está dentro de Route
+        startDestination = Route.HomeRoute,
         modifier = modifier
     ) {
 
@@ -42,7 +39,6 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             )
         }
 
-        // --- TELA SEARCH (NÃO herda de Route, mas é acessada via Route.SearchRoute) ---
         composable<Route.SearchRoute> {
             val searchViewModel: SearchViewModel = hiltViewModel()
             val searchState by searchViewModel.state.collectAsState()
@@ -59,7 +55,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 
             SearchScreen(
                 state = searchState,
-                onEvent = { event -> searchViewModel.onEvent(event) }
+                onEvent = searchViewModel::onEvent
             )
         }
     }
