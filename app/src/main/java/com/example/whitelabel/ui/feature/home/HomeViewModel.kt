@@ -54,13 +54,14 @@ class HomeViewModel @Inject constructor(
     private fun calculateRoute(origin: LatLng, destination: LatLng) {
         viewModelScope.launch {
             directionsRepository.getRoute(origin, destination)
-                .onSuccess { polylinePoints ->
-                    // Se o Google devolveu os pontos, atualizamos o estado
-                    _state.update { it.copy(routePolylines = polylinePoints) }
-                }
-                .onFailure { error ->
-                    // Aqui você poderia atualizar o estado com uma mensagem de erro
-                    println("Erro ao buscar rota: ${error.message}")
+                .onSuccess { routeDetails ->
+                    _state.update { it.copy(
+                        routePolylines = routeDetails.points,
+                        distance = routeDetails.distance,
+                        duration = routeDetails.duration
+                    ) }
+                } .onFailure { error ->
+                    println("DEBUG: Erro na rota: ${error.message}")
                 }
         }
     }

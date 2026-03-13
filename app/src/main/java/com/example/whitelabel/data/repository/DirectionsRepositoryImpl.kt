@@ -1,6 +1,7 @@
 package com.example.whitelabel.data.repository
 
 import com.example.whitelabel.BuildConfig
+import com.example.whitelabel.domain.model.RouteDetails // 🔥 Importe o modelo novo
 import com.example.whitelabel.domain.repository.DirectionsRepository
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.PolyUtil
@@ -12,26 +13,53 @@ import javax.inject.Inject
 
 class DirectionsRepositoryImpl @Inject constructor() : DirectionsRepository {
 
-    override suspend fun getRoute(origin: LatLng, destination: LatLng): Result<List<LatLng>> = withContext(Dispatchers.IO) {
+    override suspend fun getRoute(origin: LatLng, destination: LatLng): Result<RouteDetails> = withContext(Dispatchers.IO) {
         try {
-            val originStr = "${origin.latitude},${origin.longitude}"
-            val destStr = "${destination.latitude},${destination.longitude}"
-            val url = "https://maps.googleapis.com/maps/api/directions/json?origin=$originStr&destination=$destStr&key=${BuildConfig.MAPS_API_KEY}"
+            val url = "https://maps.googleapis.com/maps/api/directions/json?" +
+                    "origin=${origin.latitude},${origin.longitude}&" +
+                    "destination=${destination.latitude},${destination.longitude}&" +
+                    "mode=driving&" + // 🔥 Garante que a rota é para carros
+                    "key=${BuildConfig.MAPS_API_KEY}"
 
             val response = URL(url).readText()
             val json = JSONObject(response)
+
+            // 1. TRATAMENTO DE ERRO SÊNIOR: Verifique o Status
+            val status = json.getString("status")
+            if (status != "OK") {
+                println("DEBUG: Erro na API do Google: $status")
+                return@withContext Result.failure(Exception("Google API: $status"))
+            }
+
             val routes = json.getJSONArray("routes")
-
             if (routes.length() > 0) {
-                val points = routes.getJSONObject(0)
-                    .getJSONObject("overview_polyline")
-                    .getString("points")
+                val route = routes.getJSONObject(0)
+                val leg = route.getJSONArray("legs").getJSONObject(0)
 
-                Result.success(PolyUtil.decode(points))
+                val distance = leg.getJSONObject("distance").getString("text")
+                val duration = leg.getJSONObject("duration").getString("text")
+
+                // 2. MELHORIA DE PRECISÃO:
+                // Se a overview_polyline estiver muito "torta",
+                // o ideal é extrair os pontos de cada 'step' dentro da 'leg'.
+                // Por enquanto, vamos manter a overview, mas validar o decode.
+                val pointsEnc = route.getJSONObject("overview_polyline").getString("points")
+                val decodedPath = PolyUtil.decode(pointsEnc)
+
+                println("DEBUG: Rota carregada com ${decodedPath.size} pontos.")
+
+                Result.success(
+                    RouteDetails(
+                        points = decodedPath,
+                        distance = distance,
+                        duration = duration
+                    )
+                )
             } else {
-                Result.failure(Exception("Nenhuma rota encontrada"))
+                Result.failure(Exception("Caminho não encontrado"))
             }
         } catch (e: Exception) {
+            println("DEBUG: Falha catastrófica: ${e.message}")
             Result.failure(e)
         }
     }

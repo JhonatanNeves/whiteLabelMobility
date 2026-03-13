@@ -10,5 +10,7 @@ data class HomeState(
     val destinationAddress: String? = null,
     val destinationLat: Double? = null,
     val destinationLng: Double? = null,
+    val distance: String? = null, //  Novo
+    val duration: String? = null,  //  Novo
     val routePolylines: List<LatLng> = emptyList()
 )
