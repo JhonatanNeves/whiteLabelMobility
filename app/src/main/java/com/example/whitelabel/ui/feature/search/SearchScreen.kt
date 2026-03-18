@@ -8,9 +8,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,6 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,15 +54,41 @@ fun SearchScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.width(24.dp)
                     ) {
-                        Box(modifier = Modifier.size(8.dp).background(Color.LightGray, CircleShape))
-                        Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.LightGray))
-                        Box(modifier = Modifier.size(8.dp).background(Color.Black))
+                        Box(modifier = Modifier
+                            .size(8.dp)
+                            .background(Color.LightGray, CircleShape))
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .height(40.dp)
+                                .background(Color.LightGray)
+                        )
+                        Box(modifier = Modifier
+                            .size(8.dp)
+                            .background(Color.Black))
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
 
                     // Os campos de texto
                     Column(modifier = Modifier.weight(1f)) {
+
+                        OutlinedTextField(
+                            value = state.originAddress, // 🔥 Use 'value', não 'text'
+                            onValueChange = { /* Por enquanto deixamos vazio se não quiser editar a origem */ },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                            label = { Text("De onde?") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.MyLocation, // 🔥 Use 'imageVector'
+                                    contentDescription = "Minha Localização",
+                                    tint = Color(0xFF4A89F3)
+                                )
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+
                         BasicTextField(
                             value = state.originQuery,
                             onValueChange = { onEvent(SearchEvent.OnOriginChanged(it)) },
@@ -86,7 +115,11 @@ fun SearchScreen(
                             textStyle = MaterialTheme.typography.bodyMedium,
                             decorationBox = { innerTextField ->
                                 if (state.destinationQuery.isEmpty()) {
-                                    Text("Para onde?", color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        "Para onde?",
+                                        color = Color.Gray,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
                                 }
                                 innerTextField()
                             }

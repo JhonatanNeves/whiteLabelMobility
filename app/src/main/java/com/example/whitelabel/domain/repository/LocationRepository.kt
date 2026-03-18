@@ -4,5 +4,7 @@ import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.Flow
 
 interface LocationRepository {
-    fun getLiveLocation(): Flow<LatLng>
+    suspend fun getLiveLocation(): Flow<LatLng>
+
+    suspend fun getAddressFromLatLng(latLng: LatLng): String?
 }

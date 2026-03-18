@@ -7,4 +7,6 @@ interface SearchRepository {
     suspend fun getAutocomplete(query: String): Result<List<PlaceSuggestion>>
 
     suspend fun getPlaceCoordinates(placeId: String): Result<LocationCoordinate>
+
+    suspend fun searchPlaces(query: String): Result<List<PlaceSuggestion>>
 }
