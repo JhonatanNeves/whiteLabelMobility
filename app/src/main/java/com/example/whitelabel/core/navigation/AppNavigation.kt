@@ -9,6 +9,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.whitelabel.domain.model.LocationCoordinate
+import com.example.whitelabel.ui.feature.main.MainEvent
 import com.example.whitelabel.ui.feature.main.MainScreen
 import com.example.whitelabel.ui.feature.main.MainViewModel
 import com.example.whitelabel.ui.feature.search.SearchScreen
@@ -29,20 +31,30 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             val mainViewModel: MainViewModel = hiltViewModel()
             val mainState by mainViewModel.state.collectAsState()
 
+            // 1. Pegamos o SavedStateHandle da tela ATUAL (Home)
             val savedStateHandle = backStackEntry.savedStateHandle
-            val destLat = savedStateHandle.get<Double>("dest_lat")
-            val destLng = savedStateHandle.get<Double>("dest_lng")
-            val destAddress = savedStateHandle.get<String>("dest_address")
 
-            LaunchedEffect(destLat, destLng) {
-                if (destLat != null && destLng != null && destAddress != null) {
-//                    mainViewModel.onEvent(MainEvent.OnDestinationSelected(destLat, destLng, destAddress))
+            // 2. Observamos a chave correta: "selected_location" (que vem da Search)
+            // Usamos collectAsState para que o Compose reaja quando o valor mudar
+            val selectedLocation by savedStateHandle
+                .getStateFlow<LocationCoordinate?>("selected_location", null)
+                .collectAsState()
 
-                    println("CHEGOU NA HOME: $destAddress ($destLat, $destLng)")
+            // 3. Quando o local selecionado chegar, avisamos o ViewModel
+            LaunchedEffect(selectedLocation) {
+                selectedLocation?.let { coordinate ->
+                    println("CHEGOU NA HOME: ${coordinate.address} (${coordinate.latitude}, ${coordinate.longitude})")
 
-                    savedStateHandle.remove<Double>("dest_lat")
-                    savedStateHandle.remove<Double>("dest_lng")
-                    savedStateHandle.remove<String>("dest_address")
+                    // DESCOMENTADO E CORRIGIDO:
+                    mainViewModel.onEvent(
+                        MainEvent.OnDestinationSelected(
+                        latitude = coordinate.latitude,
+                        longitude = coordinate.longitude,
+                        address = coordinate.address
+                    ))
+
+                    // 4. Limpamos a "mochila" para não processar o mesmo destino duas vezes (ex: ao girar a tela)
+                    savedStateHandle.remove<LocationCoordinate>("selected_location")
                 }
             }
 
@@ -51,15 +63,6 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 onEvent = mainViewModel::onEvent,
                 onNavigateToSearch = {
                     navController.navigate(Route.SearchRoute)
-                },
-
-                destLat = destLat,
-                destLng = destLng,
-                destAddress = destAddress,
-                onDestinationConsumed = {
-                    savedStateHandle.remove<Double>("dest_lat")
-                    savedStateHandle.remove<Double>("dest_lng")
-                    savedStateHandle.remove<String>("dest_address")
                 }
             )
         }
@@ -72,15 +75,15 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 searchViewModel.effect.collect { effect ->
                     when (effect) {
                         is SearchEffect.NavigateBack -> {
-                            navController.navigateUp()
+                            navController.popBackStack()
                         }
                         is SearchEffect.NavigateBackWithResult -> {
-                            navController.previousBackStackEntry?.savedStateHandle?.apply {
-                                set("dest_lat", effect.coordinate.latitude)
-                                set("dest_lng", effect.coordinate.longitude)
-                                set("dest_address", effect.coordinate.address)
-                            }
-                            navController.navigateUp()
+                            // 🔥 O segredo: a chave aqui deve ser IGUAL à que a Home está ouvindo
+                            navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("selected_location", effect.coordinate)
+
+                            navController.popBackStack()
                         }
                     }
                 }
